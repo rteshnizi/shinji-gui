@@ -20,15 +20,16 @@ jobs:
       with:
         node-version: '12.x'
 
-    - name: npm install, build
+    - name: npm install, build, and test
       run: |
         npm install
         npm run build --if-present
+        npm run test --if-present
 
     - name: 'Deploy to Azure Web App'
       uses: azure/webapps-deploy@v2
       with:
         app-name: 'shinji-gui'
         slot-name: 'production'
-        publish-profile: ${{ secrets.AzureAppService_PublishProfile_ab155ad712914679b7a1a7f9fa7b9eb5 }}
-        package: build
+        publish-profile: ${{ secrets.AzureAppService_PublishProfile_c22dabded2b44851b0e34c6529bc0604 }}
+        package: .
