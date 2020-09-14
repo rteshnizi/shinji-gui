@@ -1,1 +1,1 @@
-# shinji-gui
+# Shinji GUI
