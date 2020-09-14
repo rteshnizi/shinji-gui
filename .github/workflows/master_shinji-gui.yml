@@ -32,4 +32,4 @@ jobs:
         app-name: 'shinji-gui'
         slot-name: 'production'
         publish-profile: ${{ secrets.AzureAppService_PublishProfile_c22dabded2b44851b0e34c6529bc0604 }}
-        package: .
+        package: ./build
