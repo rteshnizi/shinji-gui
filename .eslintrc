@@ -1,0 +1,45 @@
+{
+	"extends": ["react-app", "plugin:@typescript-eslint/recommended"],
+	"rules": {
+		// TYPESCRIPT RULES
+		"@typescript-eslint/indent": [
+			"error",
+			"tab",
+			{
+				"SwitchCase": 1,
+				"flatTernaryExpressions": true
+			}
+		],
+		"@typescript-eslint/explicit-function-return-type": ["error", { "allowExpressions": true }],
+		"@typescript-eslint/no-object-literal-type-assertion": "off",
+		"@typescript-eslint/no-parameter-properties": "off",
+		"@typescript-eslint/no-useless-constructor": "off",
+		"@typescript-eslint/ban-ts-comment": "warn",
+		"@typescript-eslint/ban-ts-ignore": "warn",
+		// "@typescript-eslint/quotes": ["error", "double", { "avoidEscape": true, "allowTemplateLiterals": true }],
+		// ESLINT RULES
+		"comma-dangle": ["warn", "always-multiline"],
+		"comma-spacing": "error",
+		"indent": [
+			"error",
+			"tab",
+			{
+				"SwitchCase": 1,
+				"flatTernaryExpressions": true
+			}
+		],
+		"jsx-quotes": ["error", "prefer-double"],
+		"no-console": ["warn", { "allow": ["warn", "error"] }],
+		"no-debugger": "warn",
+		"no-duplicate-imports": ["warn", { "includeExports": true } ],
+		"no-extra-semi": "error",
+		"no-multiple-empty-lines": ["warn", { "max": 1 }],
+		"no-useless-constructor": "off",
+		"semi": "error",
+		"semi-spacing": "error",
+		"quotes": ["error", "double", { "avoidEscape": true, "allowTemplateLiterals": true }],
+		"no-loop-func": "off"
+		// "quotes": "off"
+		// "sort-imports": ["warn", { "memberSyntaxSortOrder": ["single", "all", "multiple", "none"] }],
+	}
+}
