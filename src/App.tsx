@@ -7,6 +7,8 @@ import Groups from "./Components/Groups";
 import Loading from "./Components/Loading";
 import { HttpUtils } from "./Utils/Http";
 
+type Function = () => void;
+
 interface AppState {
 	/** Whether the app is loading the initial data. */
 	loading: boolean;
@@ -31,12 +33,16 @@ class App extends ComponentBase<AppProps, AppState> {
 		this.setState({ groups });
 	}
 
-	private refreshAllGroups(failureCallback?: () => void): void {
+	private refreshAllGroups(failureCallback?: Function): void {
 		HttpUtils.get("/")
 			.then((response) => {
 				response.json().then((jsonResponse) => {
 					if (jsonResponse.message) {
-						failureCallback && failureCallback();
+						if (failureCallback) {
+							failureCallback();
+						} else {
+							console.warn(jsonResponse.message);
+						}
 					} else {
 						this.setState({ loading: false, groups: jsonResponse });
 					}
@@ -47,32 +53,59 @@ class App extends ComponentBase<AppProps, AppState> {
 			});
 	}
 
-	public componentDidMount(): void {
-		this.refreshAllGroups(() => {
-			this.setState({ loadingText: "Initializing Defaults..." }, () => {
-				HttpUtils.get("/init")
-					.then((response) => {
-						response.json().then((responseMsg) => {
-							this.setState({ loadingText: responseMsg }, this.refreshAllGroups);
-						});
-					})
-					.catch((reason) => {
-						console.error(reason);
+	private loadPersistentData(successCallback: Function, failureCallback?: Function): void {
+		this.setState({ loadingText: "Loading Data..." }, () => {
+			HttpUtils.get("/load")
+				.then((response) => {
+					response.json().then((jsonResponse) => {
+						if (jsonResponse.message) {
+							failureCallback && failureCallback();
+						} else {
+							successCallback();
+						}
 					});
-			});
+				})
+				.catch((reason) => {
+					console.warn(reason);
+				});
 		});
 	}
 
+	private initializeTestData(): void {
+		this.setState({ loadingText: "Initializing Defaults..." }, () => {
+			HttpUtils.get("/init")
+				.then((response) => {
+					response.json().then((responseMsg) => {
+						this.setState({ loadingText: responseMsg }, this.refreshAllGroups);
+					});
+				})
+				.catch((reason) => {
+					console.error(reason);
+				});
+		});
+	}
+
+	public componentDidMount(): void {
+		this.loadPersistentData(this.refreshAllGroups, this.initializeTestData);
+	}
+
 	public renderLoading(): React.ReactNode {
-		return <div className="centered-container" style={{ height: "100vh" }
-		} > <Loading message={this.state.loadingText} /></div >;
+		return (
+			<div className="centered-container" style={{ height: "100vh" }} >
+				<Loading message={this.state.loadingText} />
+			</div >
+		);
 	}
 
 	public renderGroups(): React.ReactNode {
 		if (!this.state.groups) {
 			return <BigText>Groups are not loaded! What happened?</BigText>;
 		}
-		return <div className="margined-container"><Groups groups={this.state.groups} updateGroups={this.updateGroups} refreshAllGroups={() => { }} /></div>;
+		return (
+			<div className="margined-container">
+				<Groups groups={this.state.groups} updateGroups={this.updateGroups} refreshAllGroups={this.refreshAllGroups} />
+			</div>
+		);
 	}
 
 	public render(): React.ReactNode {
