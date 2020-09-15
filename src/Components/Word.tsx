@@ -5,7 +5,9 @@ import { ComponentBase } from "../Base/ComponentBase";
 import TreeItem from "./TreeItem";
 
 interface WordState {
+	/** The value typed in the modal dialog when moving a word to a different group. */
 	newGroupName?: string;
+	/** The `open` state of the modal dialog. */
 	showMoveDialog: boolean;
 }
 
@@ -13,6 +15,7 @@ interface WordProps {
 	children: string;
 	groupName: string;
 	id: string;
+	/** Called when a word is moved to a different group. */
 	updateWord: (word: string, oldGroup: string, newGroup: string) => void;
 }
 

@@ -14,11 +14,17 @@ import TreeItem from "./TreeItem";
 import Word from "./Word";
 
 type GroupsState = {
+	/** Whether the app is awaiting addition of a group. */
 	addingGroup: boolean;
+	/** This is a mirror of the groups passed in the props. It is used to filter the data in the tree view. */
 	controlledGroups: WordGroups;
+	/** The message to be shown in the event of an error. */
 	errorMsg?: string;
+	/** The value typed in the "Add new Group..." input area. */
 	newGroupName: string;
+	/** Whether the app is awaiting saving of the group data into the persistent storage on the server. */
 	savingToStorage: boolean;
+	/** The message to be shown when an action is completed successfully. */
 	successMsg?: string;
 }
 

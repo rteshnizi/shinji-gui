@@ -8,8 +8,10 @@ import Loading from "./Components/Loading";
 import { HttpUtils } from "./Utils/Http";
 
 interface AppState {
+	/** Whether the app is loading the initial data. */
 	loading: boolean;
 	groups?: WordGroups;
+	/** Text to be displayed while the loading indicator is shown. */
 	loadingText?: string;
 }
 

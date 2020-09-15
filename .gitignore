@@ -22,5 +22,5 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# VS Code is broek right now for me
+# VS Code is broken right now for me
 debug.log
