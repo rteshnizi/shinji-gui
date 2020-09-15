@@ -25,47 +25,52 @@ class App extends ComponentBase<AppProps, AppState> {
 		};
 	}
 
-	private updateGroup(groupName: string, callback?: () => void): void {
-		HttpUtils.get(`/group/${groupName}`)
+	private updateGroups(groups: WordGroups): void {
+		this.setState({ groups });
+	}
+
+	private refreshAllGroups(failureCallback?: () => void): void {
+		HttpUtils.get("/")
 			.then((response) => {
-				response.json().then((value: WordGroups) => {
-					const words = value[groupName];
-					if (this.state.groups) {
-						this.state.groups[groupName] = words;
-						this.setState({ groups: this.state.groups }, callback);
+				response.json().then((jsonResponse) => {
+					if (jsonResponse.message) {
+						failureCallback && failureCallback();
+					} else {
+						this.setState({ loading: false, groups: jsonResponse });
 					}
 				});
+			})
+			.catch((reason) => {
+				console.warn(reason);
 			});
 	}
 
 	public componentDidMount(): void {
-		HttpUtils.get("/init")
-			.then((response) => {
-				response.json().then((responseMsg) => {
-					this.setState({ loadingText: responseMsg }, () => {
-						HttpUtils.get("/")
-							.then((response) => {
-								response.json().then((jsonResponse) => {
-									this.setState({ loading: false, groups: jsonResponse });
-								});
-							});
+		this.refreshAllGroups(() => {
+			this.setState({ loadingText: "Initializing Defaults..." }, () => {
+				HttpUtils.get("/init")
+					.then((response) => {
+						response.json().then((responseMsg) => {
+							this.setState({ loadingText: responseMsg }, this.refreshAllGroups);
+						});
+					})
+					.catch((reason) => {
+						console.error(reason);
 					});
-				});
-			})
-			.catch((reason) => {
-				console.error(reason);
 			});
+		});
 	}
 
 	public renderLoading(): React.ReactNode {
-		return <div className="centered-container" style={{ height: "100vh" }}><Loading message={this.state.loadingText} /></div>;
+		return <div className="centered-container" style={{ height: "100vh" }
+		} > <Loading message={this.state.loadingText} /></div >;
 	}
 
 	public renderGroups(): React.ReactNode {
 		if (!this.state.groups) {
 			return <BigText>Groups are not loaded! What happened?</BigText>;
 		}
-		return <div className="margined-container"><Groups groups={this.state.groups} updateGroup={this.updateGroup} /></div>;
+		return <div className="margined-container"><Groups groups={this.state.groups} updateGroups={this.updateGroups} refreshAllGroups={() => { }} /></div>;
 	}
 
 	public render(): React.ReactNode {

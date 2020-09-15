@@ -1,6 +1,7 @@
 import * as Mui from "@material-ui/core";
 import AddIcon from "@material-ui/icons/Add";
 import ChevronRightIcon from "@material-ui/icons/ChevronRight";
+import DeleteIcon from "@material-ui/icons/Delete";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import SearchIcon from "@material-ui/icons/Search";
 import * as MuiLab from "@material-ui/lab";
@@ -9,6 +10,7 @@ import React from "react";
 import { ComponentBase } from "../Base/ComponentBase";
 import { WordGroups } from "../Base/WordGroup";
 import { HttpUtils } from "../Utils/Http";
+import TreeItem from "./TreeItem";
 import Word from "./Word";
 
 type GroupsState = {
@@ -16,12 +18,14 @@ type GroupsState = {
 	controlledGroups: WordGroups;
 	errorMsg?: string;
 	newGroupName: string;
+	savingToStorage: boolean;
 	successMsg?: string;
 }
 
 type GroupsProps = {
 	groups: WordGroups;
-	updateGroup: (groupName: string, callback?: () => void) => void;
+	updateGroups: (groups: WordGroups) => void;
+	refreshAllGroups: () => void;
 };
 
 class Groups extends ComponentBase<GroupsProps, GroupsState> {
@@ -32,6 +36,7 @@ class Groups extends ComponentBase<GroupsProps, GroupsState> {
 			controlledGroups: this.props.groups,
 			errorMsg: undefined,
 			newGroupName: "",
+			savingToStorage: false,
 			successMsg: undefined,
 		};
 	}
@@ -45,6 +50,25 @@ class Groups extends ComponentBase<GroupsProps, GroupsState> {
 		}, 1000);
 	}
 
+	private updateGroup(groupName: string, callback?: () => void): void {
+		HttpUtils.get(`/group/${groupName}`)
+			.then((response) => {
+				response.json().then((value: WordGroups) => {
+					console.warn(value);
+					const words = value[groupName];
+					this.props.groups[groupName] = words;
+					if (callback) {
+						callback();
+					} else {
+						this.props.updateGroups(this.props.groups);
+					}
+				});
+			})
+			.catch((reason) => {
+				console.error(reason);
+			});
+	}
+
 	private addGroup(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
 		if (!this.state.newGroupName) return;
 		this.setState({ addingGroup: true }, () => {
@@ -55,12 +79,34 @@ class Groups extends ComponentBase<GroupsProps, GroupsState> {
 							this.setState({ addingGroup: false, errorMsg });
 						} else {
 							this.setState({ addingGroup: false, successMsg: `Group "${this.state.newGroupName}" added.` }, () => {
-								this.props.updateGroup(this.state.newGroupName);
+								this.updateGroup(this.state.newGroupName);
 							});
 						}
 					});
+				})
+				.catch((reason) => {
+					console.error(reason);
 				});
 		});
+	}
+
+	private deleteGroup(groupName: string): void {
+		HttpUtils.get(`/deleteGroup/${groupName}`)
+			.then((response) => {
+				response.json().then((errorMsg) => {
+					if (errorMsg) {
+						this.setState({ addingGroup: false, errorMsg });
+					} else {
+						this.setState({ addingGroup: false, successMsg: `Group "${groupName}" deleted.` }, () => {
+							delete this.props.groups[groupName];
+							this.props.updateGroups(this.props.groups);
+						});
+					}
+				});
+			})
+			.catch((reason) => {
+				console.error(reason);
+			});
 	}
 
 	private updateWord(word: string, oldGroup: string, newGroup: string): void {
@@ -71,11 +117,34 @@ class Groups extends ComponentBase<GroupsProps, GroupsState> {
 						this.setState({ errorMsg });
 					} else {
 						this.setState({ addingGroup: false, successMsg: `Moved "${word}": "${oldGroup}" → "${newGroup}".` }, () => {
-							this.props.updateGroup(oldGroup, () => { this.props.updateGroup(newGroup); });
+							this.updateGroup(oldGroup, () => { this.updateGroup(newGroup); });
 						});
 					}
 				});
+			})
+			.catch((reason) => {
+				console.error(reason);
 			});
+	}
+
+	private saveToStorage(): void {
+		if (this.state.savingToStorage) return;
+		this.setState({ savingToStorage: true }, () => {
+			HttpUtils.get("/save")
+				.then((response) => {
+					response.json().then((errorMsg) => {
+						if (errorMsg) {
+							this.setState({ errorMsg });
+						} else {
+							this.setState({ savingToStorage: false, successMsg: `Saved to Storage.` });
+						}
+					});
+				})
+				.catch((reason) => {
+					console.error(reason);
+				});
+		});
+
 	}
 
 	private filter(event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>): void {
@@ -97,9 +166,42 @@ class Groups extends ComponentBase<GroupsProps, GroupsState> {
 		this.setState({ controlledGroups: filteredGroups });
 	}
 
+	private renderProgressIndicator(): React.ReactElement {
+		return <Mui.CircularProgress variant="indeterminate" size={20} />;
+	}
+
 	public render(): React.ReactNode {
 		return (
 			<React.Fragment>
+				<Mui.AppBar elevation={0}>
+					<Mui.Toolbar>
+						<Mui.Input
+							className="app-bar-input"
+							placeholder="Search..."
+							endAdornment={<Mui.InputAdornment position="end"><SearchIcon /></Mui.InputAdornment>}
+							onChange={this.filter}
+						/>
+						<Mui.Input
+							className="app-bar-input"
+							placeholder="َAdd a new Group..."
+							endAdornment={
+								<Mui.InputAdornment position="end">
+									<Mui.IconButton aria-label="Add Group" size="small" onClick={this.addGroup}>
+										{this.state.addingGroup ? this.renderProgressIndicator() : <AddIcon />}
+									</Mui.IconButton>
+								</Mui.InputAdornment>
+							}
+							onChange={(e) => { this.setState({ newGroupName: e.target.value }); }}
+						/>
+						<Mui.Button
+							className="save-button"
+							variant="outlined"
+							onClick={this.saveToStorage}
+						>
+							{this.state.savingToStorage ? this.renderProgressIndicator() : "Save to Storage"}
+						</Mui.Button>
+					</Mui.Toolbar>
+				</Mui.AppBar>
 				<Mui.Snackbar
 					open={!!this.state.errorMsg || !!this.state.successMsg}
 					onClose={this.closeSnackbar}
@@ -113,31 +215,22 @@ class Groups extends ComponentBase<GroupsProps, GroupsState> {
 							this.state.successMsg ? <MuiLab.Alert severity="success">{this.state.successMsg}</MuiLab.Alert> : undefined
 					}
 				</Mui.Snackbar>
-				<Mui.Input
-					placeholder="Search..."
-					endAdornment={<Mui.InputAdornment position="end"><SearchIcon /></Mui.InputAdornment>}
-					onChange={this.filter}
-				/>
-				<div>
-					<Mui.Input
-						placeholder="َAdd a new Group..."
-						endAdornment={
-							<Mui.InputAdornment position="end">
-								<Mui.IconButton aria-label="Add Group" size="small" onClick={this.addGroup}>
-									{this.state.addingGroup ? <Mui.CircularProgress variant="indeterminate" size={20} /> : <AddIcon />}
-								</Mui.IconButton>
-							</Mui.InputAdornment>
-						}
-						onChange={(e) => { this.setState({ newGroupName: e.target.value }); }}
-					/>
-
-				</div>
+				<div className="app-bar-filler" />
 				<MuiLab.TreeView
 					defaultCollapseIcon={<ExpandMoreIcon />}
 					defaultExpandIcon={<ChevronRightIcon />}
 				>
 					{lodash.map(this.state.controlledGroups, (group, groupName) => (
-						<MuiLab.TreeItem key={groupName} nodeId={groupName} label={groupName}>
+						<TreeItem
+							key={groupName}
+							id={groupName}
+							label={groupName}
+							action={this.deleteGroup}
+							actionIcon={<DeleteIcon />}
+							hideAction={group.length > 0}
+							disableHover={true}
+							actionTooltip="Delete group"
+						>
 							{group.map((word) => {
 								return (
 									<Word
@@ -150,7 +243,7 @@ class Groups extends ComponentBase<GroupsProps, GroupsState> {
 									</Word>
 								);
 							})}
-						</MuiLab.TreeItem>
+						</TreeItem>
 					))}
 				</MuiLab.TreeView>
 			</React.Fragment>

@@ -36,10 +36,24 @@ code {
 	}
 }
 
-.tree-item-container .tree-item-icon {
+.tree-item-container:not(.no-hover) .tree-item-icon {
 	display: none;
 }
 
-.tree-item-container:hover .tree-item-icon {
+.tree-item-container:not(.no-hover):hover .tree-item-icon {
 	display: inline;
+}
+
+.app-bar-filler {
+	height: 60px;
+	min-height: 60px;
+}
+
+.app-bar-input {
+	margin: 0px 20px;
+}
+
+.save-button {
+	color: white !important;
+	background-color: rgb(46, 46, 49) !important;
 }

@@ -40,7 +40,7 @@ class Word extends ComponentBase<WordProps, WordState> {
 	public render(): React.ReactNode {
 		const key = `${this.props.id}-inner`;
 		return (
-			<div className="word-container">
+			<React.Fragment>
 				<Mui.Dialog
 					open={this.state.showMoveDialog}
 					onClose={this.closeDialog}
@@ -65,10 +65,10 @@ class Word extends ComponentBase<WordProps, WordState> {
 						<Mui.Button variant="contained" color="secondary" onClick={this.closeDialog}>Cancel</Mui.Button>
 					</Mui.DialogActions>
 				</Mui.Dialog>
-				<TreeItem id={key} action={() => { this.setState({ showMoveDialog: true }); }} actionIcon={<EditIcon />} actionTooltip="Move to a different group" >
+				<TreeItem id={key} action={() => { this.setState({ showMoveDialog: true }); }} actionIcon={<EditIcon />} actionTooltip="Move to a different group">
 					{this.props.children}
 				</TreeItem>
-			</div>
+			</React.Fragment>
 		);
 	}
 }
