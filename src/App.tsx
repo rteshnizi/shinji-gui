@@ -25,12 +25,25 @@ class App extends ComponentBase<AppProps, AppState> {
 		};
 	}
 
+	private updateGroup(groupName: string, callback?: () => void): void {
+		HttpUtils.get(`/group/${groupName}`)
+			.then((response) => {
+				response.json().then((value: WordGroups) => {
+					const words = value[groupName];
+					if (this.state.groups) {
+						this.state.groups[groupName] = words;
+						this.setState({ groups: this.state.groups }, callback);
+					}
+				});
+			});
+	}
+
 	public componentDidMount(): void {
-		HttpUtils.get("https://shinji-project.azurewebsites.net/init")
+		HttpUtils.get("/init")
 			.then((response) => {
 				response.json().then((responseMsg) => {
 					this.setState({ loadingText: responseMsg }, () => {
-						HttpUtils.get("https://shinji-project.azurewebsites.net/")
+						HttpUtils.get("/")
 							.then((response) => {
 								response.json().then((jsonResponse) => {
 									this.setState({ loading: false, groups: jsonResponse });
@@ -52,7 +65,7 @@ class App extends ComponentBase<AppProps, AppState> {
 		if (!this.state.groups) {
 			return <BigText>Groups are not loaded! What happened?</BigText>;
 		}
-		return <Groups groups={this.state.groups} />;
+		return <div className="margined-container"><Groups groups={this.state.groups} updateGroup={this.updateGroup} /></div>;
 	}
 
 	public render(): React.ReactNode {

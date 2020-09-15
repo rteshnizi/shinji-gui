@@ -4,9 +4,9 @@ import { ComponentBase } from "../Base/ComponentBase";
 
 type LoadingState = {}
 
-type LoadingProps = {
+interface LoadingProps {
 	message?: string;
-};
+}
 
 class Loading extends ComponentBase<LoadingProps, LoadingState> {
 	public render(): React.ReactNode {

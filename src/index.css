@@ -18,3 +18,28 @@ code {
 	align-items: center;
 	justify-content: center;
 }
+
+.margined-container {
+	margin-top: 10px;
+	margin-bottom: 10px;
+	margin-left: 50px;
+	margin-right: 50px;
+}
+
+.tree-item-container {
+	width: 25vw;
+}
+
+@media only screen and (max-width: 768px) {
+	.tree-item-container {
+		width: 100vw;
+	}
+}
+
+.tree-item-container .tree-item-icon {
+	display: none;
+}
+
+.tree-item-container:hover .tree-item-icon {
+	display: inline;
+}
