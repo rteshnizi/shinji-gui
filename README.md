@@ -19,8 +19,8 @@ A few things to note:
 1. I have only tested this GUI in Firefox as it is my main browser.
 2. I have used Class Components. I strongly prefer Class Components over Function Components as it enforces better OOD and improves extensibility.
 3. This GUI was not tested with a big dataset. I have only used the provided test data.
-4. There are better/prettier ways to implement a GUI for this task, but this is a proof of concept.
-5. Please forgive the aesthetics xD. I didn't spend time designing the MUI theme.
+4. There are better/prettier UX to implement a GUI for this task, but this is a proof of concept.
+5. Please forgive the aesthetics xD.
 
 ## `src` Folder Hierarchy
 * **./**: Contains the root of the React application. The application entry is `index.tsx`. The logic of the application begins at `App.tsx`
